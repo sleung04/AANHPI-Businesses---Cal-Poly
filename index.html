@@ -2,125 +2,710 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AANHPI Business Directory</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    color: #252525;
-  }
-  .directory {
-    max-width: 1100px;
-    margin: auto;
-    padding: 24px;
-  }
-  h1 { color: #154734; }
-  .filters {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin: 24px 0;
-  }
-  input, select {
-    padding: 12px;
-    font-size: 16px;
-    border: 1px solid #aaa;
-    border-radius: 5px;
-  }
-  input { flex: 2; min-width: 180px; }
-  select { flex: 1; min-width: 150px; }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  th, td {
-    padding: 14px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-  }
-  th {
-    background: #154734;
-    color: white;
-  }
-  @media(max-width: 600px) {
-    .results { overflow-x: auto; }
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AANHPI Business Directory | Prototype</title>
+
+  <style>
+    :root {
+      --green: #154734;
+      --green-dark: #103b2c;
+      --gold: #bd8b13;
+      --cream: #f7f6f2;
+      --white: #ffffff;
+      --text: #26332d;
+      --muted: #526159;
+      --border: #dce3dd;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--white);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.5;
+    }
+
+    .directory {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero {
+      background: var(--green);
+      color: white;
+      padding: 36px;
+      border-radius: 12px;
+      border-top: 5px solid var(--gold);
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #f1d48a;
+    }
+
+    h1 {
+      margin: 12px 0;
+      font-size: clamp(26px, 4vw, 38px);
+      line-height: 1.2;
+    }
+
+    .hero p {
+      max-width: 750px;
+      margin-bottom: 0;
+      color: #f1f5f2;
+    }
+
+    .notice {
+      margin: 20px 0;
+      padding: 14px 18px;
+      background: #fff8e5;
+      border-left: 4px solid var(--gold);
+      border-radius: 5px;
+      font-size: 14px;
+    }
+
+    .controls {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin: 24px 0;
+    }
+
+    .controls h2 {
+      margin: 0 0 16px;
+      color: var(--green);
+      font-size: 20px;
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .field.search-field {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    input, select {
+      width: 100%;
+      min-height: 44px;
+      padding: 11px 12px;
+      border: 1px solid #aab7ae;
+      border-radius: 6px;
+      background: white;
+      color: var(--text);
+      font: inherit;
+      font-size: 15px;
+    }
+
+    input:focus, select:focus,
+    button:focus-visible, a:focus-visible {
+      outline: 3px solid var(--gold);
+      outline-offset: 2px;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 24px 0 18px;
+    }
+
+    .count {
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    button {
+      cursor: pointer;
+      padding: 10px 16px;
+      border: 1px solid var(--green);
+      border-radius: 6px;
+      background: white;
+      color: var(--green);
+      font: inherit;
+      font-weight: 700;
+    }
+
+    button:hover {
+      background: var(--green);
+      color: white;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      display: flex;
+      flex-direction: column;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+    }
+
+    .card:hover {
+      border-color: var(--gold);
+    }
+
+    .card-top {
+      padding: 22px;
+      flex: 1;
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      color: var(--green);
+      font-size: 20px;
+      line-height: 1.3;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-bottom: 16px;
+    }
+
+    .tag {
+      background: #eaf1ec;
+      color: var(--green-dark);
+      padding: 5px 9px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .tag.gold {
+      background: #f8edcf;
+      color: #6b4b00;
+    }
+
+    .description {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .detail {
+      margin: 8px 0;
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+
+    .detail strong {
+      color: var(--text);
+    }
+
+    .card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 16px 22px;
+      border-top: 1px solid var(--border);
+      background: #fafbf9;
+    }
+
+    .card-actions a {
+      display: inline-block;
+      padding: 9px 12px;
+      border-radius: 5px;
+      background: var(--green);
+      color: white;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .card-actions a.secondary {
+      background: white;
+      color: var(--green);
+      border: 1px solid var(--green);
+    }
+
+    .card-actions a:hover {
+      text-decoration: underline;
+    }
+
+    .empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 50px 20px;
+      background: var(--cream);
+      border-radius: 10px;
+    }
+
+    .empty h3 {
+      color: var(--green);
+    }
+
+    .footer {
+      margin-top: 36px;
+      padding: 22px 0;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 950px) {
+      .cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .filter-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 600px) {
+      .directory { padding: 12px; }
+      .hero { padding: 24px 20px; }
+      .controls { padding: 18px; }
+      .cards, .filter-grid {
+        grid-template-columns: 1fr;
+      }
+      .field.search-field {
+        grid-column: auto;
+      }
+      .card-top { padding: 18px; }
+      .card-actions { padding: 14px 18px; }
+    }
+  </style>
 </head>
+
 <body>
 <main class="directory">
-  <h1>AANHPI Business Directory</h1>
-  <p>Explore businesses in our community.</p>
 
-  <div class="filters">
-    <input id="search" aria-label="Search businesses"
-      placeholder="Search businesses...">
-    <select id="category" aria-label="Business category">
-      <option value="">All categories</option>
-      <option>Restaurant</option>
-      <option>Grocery</option>
-      <option>Cafe</option>
-    </select>
-    <select id="city" aria-label="City">
-      <option value="">All cities</option>
-      <option>San Luis Obispo</option>
-      <option>Santa Maria</option>
-    </select>
+  <header class="hero">
+    <div class="eyebrow">
+      Cal Poly | Community Resources
+    </div>
+    <h1>AANHPI Business Directory</h1>
+    <p>
+      Discover and support Asian American, Native Hawaiian,
+      and Pacific Islander-owned businesses in our local
+      communities. Explore restaurants, shops, services,
+      and more.
+    </p>
+  </header>
+
+  <div class="notice" role="note">
+    <strong>Prototype for review:</strong>
+    This directory is a demonstration using fictional
+    business records. Content, eligibility criteria,
+    and publication are pending university review.
   </div>
 
-  <p id="count" aria-live="polite"></p>
-  <div class="results">
-    <table>
-      <thead>
-        <tr>
-          <th>Business</th>
-          <th>Category</th>
-          <th>City</th>
-        </tr>
-      </thead>
-      <tbody id="businesses"></tbody>
-    </table>
+  <section class="controls" aria-labelledby="filter-heading">
+    <h2 id="filter-heading">Find a Business</h2>
+
+    <div class="filter-grid">
+      <div class="field search-field">
+        <label for="search">Search businesses</label>
+        <input
+          type="search"
+          id="search"
+          placeholder="Search name, cuisine, description, or city..."
+        >
+      </div>
+
+      <div class="field">
+        <label for="category">Business category</label>
+        <select id="category">
+          <option value="">All categories</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="cuisine">Cuisine</label>
+        <select id="cuisine">
+          <option value="">All cuisines</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="city">City</label>
+        <select id="city">
+          <option value="">All cities</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="format">Business format</label>
+        <select id="format">
+          <option value="">All formats</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="sort">Sort businesses</label>
+        <select id="sort">
+          <option value="name-asc">Name: A to Z</option>
+          <option value="name-desc">Name: Z to A</option>
+          <option value="city-asc">City: A to Z</option>
+          <option value="category-asc">Category: A to Z</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <div class="toolbar">
+    <div id="count" class="count" role="status"
+         aria-live="polite" aria-atomic="true"></div>
+    <button id="clear" type="button">
+      Clear All Filters
+    </button>
   </div>
+
+  <section id="cards" class="cards"
+           aria-label="Business directory results">
+  </section>
+
+  <footer class="footer">
+    <p>
+      AANHPI Business Directory | Demonstration only.
+      Business information will be reviewed before publication.
+    </p>
+  </footer>
+
 </main>
+
 <script>
-const data = [
-  ["Example Noodle House", "Restaurant", "San Luis Obispo"],
-  ["Example Asian Market", "Grocery", "Santa Maria"],
-  ["Example Tea Shop", "Cafe", "San Luis Obispo"]
+"use strict";
+
+// FICTIONAL DEMONSTRATION DATA ONLY.
+// Replace with approved public directory data later.
+
+const businesses = [
+  {
+    name: "Sample Noodle House",
+    category: "Restaurant",
+    cuisine: "Vietnamese",
+    city: "San Luis Obispo",
+    format: "Storefront",
+    address: "",
+    phone: "",
+    website: "",
+    description: "A fictional Vietnamese restaurant featuring noodle dishes and casual dining."
+  },
+  {
+    name: "Sample Korean Kitchen",
+    category: "Restaurant",
+    cuisine: "Korean",
+    city: "Santa Maria",
+    format: "Storefront",
+    address: "",
+    phone: "",
+    website: "",
+    description: "A fictional restaurant serving Korean-inspired meals."
+  },
+  {
+    name: "Sample Asian Market",
+    category: "Grocery",
+    cuisine: "Not applicable",
+    city: "Paso Robles",
+    format: "Storefront",
+    address: "",
+    phone: "",
+    website: "",
+    description: "A fictional grocery market offering Asian food products."
+  },
+  {
+    name: "Sample Tea House",
+    category: "Cafe & Tea",
+    cuisine: "Taiwanese",
+    city: "San Luis Obispo",
+    format: "Storefront",
+    address: "",
+    phone: "",
+    website: "",
+    description: "A fictional cafe specializing in tea and specialty drinks."
+  },
+  {
+    name: "Sample Filipino Catering",
+    category: "Catering",
+    cuisine: "Filipino",
+    city: "Atascadero",
+    format: "Catering",
+    address: "",
+    phone: "",
+    website: "",
+    description: "A fictional catering service featuring Filipino dishes."
+  },
+  {
+    name: "Sample Sushi Truck",
+    category: "Restaurant",
+    cuisine: "Japanese",
+    city: "Santa Maria",
+    format: "Food Truck",
+    address: "",
+    phone: "",
+    website: "",
+    description: "A fictional mobile food business serving sushi."
+  },
+  {
+    name: "Sample Community Bookshop",
+    category: "Retail",
+    cuisine: "Not applicable",
+    city: "San Luis Obispo",
+    format: "Storefront",
+    address: "",
+    phone: "",
+    website: "",
+    description: "A fictional independent bookstore and gift shop."
+  },
+  {
+    name: "Sample Creative Studio",
+    category: "Professional Services",
+    cuisine: "Not applicable",
+    city: "Paso Robles",
+    format: "Online",
+    address: "",
+    phone: "",
+    website: "",
+    description: "A fictional design and creative services business."
+  }
 ];
 
-const search = document.getElementById("search");
-const category = document.getElementById("category");
-const city = document.getElementById("city");
-const tbody = document.getElementById("businesses");
-const count = document.getElementById("count");
+const searchInput = document.getElementById("search");
+const categorySelect = document.getElementById("category");
+const cuisineSelect = document.getElementById("cuisine");
+const citySelect = document.getElementById("city");
+const formatSelect = document.getElementById("format");
+const sortSelect = document.getElementById("sort");
+const cardsContainer = document.getElementById("cards");
+const countElement = document.getElementById("count");
+const clearButton = document.getElementById("clear");
 
-function render() {
-  const term = search.value.toLowerCase().trim();
-  const matches = data.filter(row =>
-    row.join(" ").toLowerCase().includes(term) &&
-    (!category.value || row[1] === category.value) &&
-    (!city.value || row[2] === city.value)
-  );
+function populateSelect(select, field) {
+  const values = [...new Set(
+    businesses.map(b => b[field]).filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b));
 
-  tbody.replaceChildren();
-  matches.forEach(row => {
-    const tr = document.createElement("tr");
-    row.forEach(value => {
-      const td = document.createElement("td");
-      td.textContent = value;
-      tr.appendChild(td);
-    });
-    tbody.appendChild(tr);
+  values.forEach(value => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value;
+    select.appendChild(option);
   });
-  count.textContent = matches.length + " businesses found";
 }
 
-[search, category, city].forEach(el =>
-  el.addEventListener("input", render)
-);
+populateSelect(categorySelect, "category");
+populateSelect(cuisineSelect, "cuisine");
+populateSelect(citySelect, "city");
+populateSelect(formatSelect, "format");
+
+function makeElement(tag, className, text) {
+  const element = document.createElement(tag);
+  if (className) element.className = className;
+  if (text !== undefined) element.textContent = text;
+  return element;
+}
+
+function addDetail(parent, label, value) {
+  if (!value) return;
+
+  const p = makeElement("p", "detail");
+  const strong = makeElement("strong", "", label + ": ");
+  p.appendChild(strong);
+  p.appendChild(document.createTextNode(value));
+  parent.appendChild(p);
+}
+
+function safeHttpUrl(value) {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    return ["https:", "http:"].includes(url.protocol)
+      ? url.href : null;
+  } catch {
+    return null;
+  }
+}
+
+function addLink(parent, label, url, secondary = false) {
+  const safeUrl = safeHttpUrl(url);
+  if (!safeUrl) return;
+
+  const link = makeElement("a",
+    secondary ? "secondary" : "", label);
+  link.href = safeUrl;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  parent.appendChild(link);
+}
+
+function createCard(business) {
+  const card = makeElement("article", "card");
+  const top = makeElement("div", "card-top");
+
+  top.appendChild(makeElement("h3", "", business.name));
+
+  const tags = makeElement("div", "tags");
+
+  [business.category, business.cuisine, business.format]
+    .filter(value => value && value !== "Not applicable")
+    .forEach((value, index) => {
+      tags.appendChild(
+        makeElement("span",
+          index === 0 ? "tag gold" : "tag", value)
+      );
+    });
+
+  top.appendChild(tags);
+
+  if (business.description) {
+    top.appendChild(
+      makeElement("p", "description", business.description)
+    );
+  }
+
+  addDetail(top, "City", business.city);
+  addDetail(top, "Address", business.address);
+  addDetail(top, "Phone", business.phone);
+
+  card.appendChild(top);
+
+  const actions = makeElement("div", "card-actions");
+
+  addLink(actions, "Visit Website", business.website);
+
+  if (business.address) {
+    const mapsUrl =
+      "https://www.google.com/maps/search/?api=1&query=" +
+      encodeURIComponent(business.address);
+
+    addLink(actions, "Get Directions", mapsUrl, true);
+  }
+
+  if (actions.children.length > 0) {
+    card.appendChild(actions);
+  }
+
+  return card;
+}
+
+function getFilteredBusinesses() {
+  const term = searchInput.value.trim().toLowerCase();
+
+  const matches = businesses.filter(b => {
+    const searchable = [
+      b.name, b.category, b.cuisine, b.city,
+      b.format, b.address, b.description
+    ].join(" ").toLowerCase();
+
+    return (
+      searchable.includes(term) &&
+      (!categorySelect.value ||
+        b.category === categorySelect.value) &&
+      (!cuisineSelect.value ||
+        b.cuisine === cuisineSelect.value) &&
+      (!citySelect.value ||
+        b.city === citySelect.value) &&
+      (!formatSelect.value ||
+        b.format === formatSelect.value)
+    );
+  });
+
+  const sort = sortSelect.value;
+
+  matches.sort((a, b) => {
+    if (sort === "name-desc") {
+      return b.name.localeCompare(a.name);
+    }
+    if (sort === "city-asc") {
+      return a.city.localeCompare(b.city) ||
+             a.name.localeCompare(b.name);
+    }
+    if (sort === "category-asc") {
+      return a.category.localeCompare(b.category) ||
+             a.name.localeCompare(b.name);
+    }
+    return a.name.localeCompare(b.name);
+  });
+
+  return matches;
+}
+
+function render() {
+  const results = getFilteredBusinesses();
+  cardsContainer.replaceChildren();
+
+  countElement.textContent =
+    results.length + " " +
+    (results.length === 1 ? "business" : "businesses") +
+    " found";
+
+  if (results.length === 0) {
+    const empty = makeElement("div", "empty");
+    empty.appendChild(
+      makeElement("h3", "", "No businesses found")
+    );
+    empty.appendChild(
+      makeElement("p", "",
+        "Try another search or clear your filters.")
+    );
+    cardsContainer.appendChild(empty);
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+
+  results.forEach(business => {
+    fragment.appendChild(createCard(business));
+  });
+
+  cardsContainer.appendChild(fragment);
+}
+
+[
+  searchInput,
+  categorySelect,
+  cuisineSelect,
+  citySelect,
+  formatSelect,
+  sortSelect
+].forEach(control => {
+  control.addEventListener("input", render);
+});
+
+clearButton.addEventListener("click", () => {
+  searchInput.value = "";
+  categorySelect.value = "";
+  cuisineSelect.value = "";
+  citySelect.value = "";
+  formatSelect.value = "";
+  sortSelect.value = "name-asc";
+  render();
+  searchInput.focus();
+});
+
 render();
 </script>
 </body>
