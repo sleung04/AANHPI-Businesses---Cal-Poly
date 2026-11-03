@@ -1,0 +1,127 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AANHPI Business Directory</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    color: #252525;
+  }
+  .directory {
+    max-width: 1100px;
+    margin: auto;
+    padding: 24px;
+  }
+  h1 { color: #154734; }
+  .filters {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 24px 0;
+  }
+  input, select {
+    padding: 12px;
+    font-size: 16px;
+    border: 1px solid #aaa;
+    border-radius: 5px;
+  }
+  input { flex: 2; min-width: 180px; }
+  select { flex: 1; min-width: 150px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: 14px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  th {
+    background: #154734;
+    color: white;
+  }
+  @media(max-width: 600px) {
+    .results { overflow-x: auto; }
+  }
+</style>
+</head>
+<body>
+<main class="directory">
+  <h1>AANHPI Business Directory</h1>
+  <p>Explore businesses in our community.</p>
+
+  <div class="filters">
+    <input id="search" aria-label="Search businesses"
+      placeholder="Search businesses...">
+    <select id="category" aria-label="Business category">
+      <option value="">All categories</option>
+      <option>Restaurant</option>
+      <option>Grocery</option>
+      <option>Cafe</option>
+    </select>
+    <select id="city" aria-label="City">
+      <option value="">All cities</option>
+      <option>San Luis Obispo</option>
+      <option>Santa Maria</option>
+    </select>
+  </div>
+
+  <p id="count" aria-live="polite"></p>
+  <div class="results">
+    <table>
+      <thead>
+        <tr>
+          <th>Business</th>
+          <th>Category</th>
+          <th>City</th>
+        </tr>
+      </thead>
+      <tbody id="businesses"></tbody>
+    </table>
+  </div>
+</main>
+<script>
+const data = [
+  ["Example Noodle House", "Restaurant", "San Luis Obispo"],
+  ["Example Asian Market", "Grocery", "Santa Maria"],
+  ["Example Tea Shop", "Cafe", "San Luis Obispo"]
+];
+
+const search = document.getElementById("search");
+const category = document.getElementById("category");
+const city = document.getElementById("city");
+const tbody = document.getElementById("businesses");
+const count = document.getElementById("count");
+
+function render() {
+  const term = search.value.toLowerCase().trim();
+  const matches = data.filter(row =>
+    row.join(" ").toLowerCase().includes(term) &&
+    (!category.value || row[1] === category.value) &&
+    (!city.value || row[2] === city.value)
+  );
+
+  tbody.replaceChildren();
+  matches.forEach(row => {
+    const tr = document.createElement("tr");
+    row.forEach(value => {
+      const td = document.createElement("td");
+      td.textContent = value;
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  count.textContent = matches.length + " businesses found";
+}
+
+[search, category, city].forEach(el =>
+  el.addEventListener("input", render)
+);
+render();
+</script>
+</body>
+</html>
