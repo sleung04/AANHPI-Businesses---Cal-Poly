@@ -297,6 +297,7 @@
       .card-actions { padding: 14px 18px; }
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js"></script>
 </head>
 
 <body>
@@ -402,96 +403,66 @@
 // FICTIONAL DEMONSTRATION DATA ONLY.
 // Replace with approved public directory data later.
 
-const businesses = [
-  {
-    name: "Sample Noodle House",
-    category: "Restaurant",
-    cuisine: "Vietnamese",
-    city: "San Luis Obispo",
-    format: "Storefront",
-    address: "",
-    phone: "",
-    website: "",
-    description: "A fictional Vietnamese restaurant featuring noodle dishes and casual dining."
-  },
-  {
-    name: "Sample Korean Kitchen",
-    category: "Restaurant",
-    cuisine: "Korean",
-    city: "Santa Maria",
-    format: "Storefront",
-    address: "",
-    phone: "",
-    website: "",
-    description: "A fictional restaurant serving Korean-inspired meals."
-  },
-  {
-    name: "Sample Asian Market",
-    category: "Grocery",
-    cuisine: "Not applicable",
-    city: "Paso Robles",
-    format: "Storefront",
-    address: "",
-    phone: "",
-    website: "",
-    description: "A fictional grocery market offering Asian food products."
-  },
-  {
-    name: "Sample Tea House",
-    category: "Cafe & Tea",
-    cuisine: "Taiwanese",
-    city: "San Luis Obispo",
-    format: "Storefront",
-    address: "",
-    phone: "",
-    website: "",
-    description: "A fictional cafe specializing in tea and specialty drinks."
-  },
-  {
-    name: "Sample Filipino Catering",
-    category: "Catering",
-    cuisine: "Filipino",
-    city: "Atascadero",
-    format: "Catering",
-    address: "",
-    phone: "",
-    website: "",
-    description: "A fictional catering service featuring Filipino dishes."
-  },
-  {
-    name: "Sample Sushi Truck",
-    category: "Restaurant",
-    cuisine: "Japanese",
-    city: "Santa Maria",
-    format: "Food Truck",
-    address: "",
-    phone: "",
-    website: "",
-    description: "A fictional mobile food business serving sushi."
-  },
-  {
-    name: "Sample Community Bookshop",
-    category: "Retail",
-    cuisine: "Not applicable",
-    city: "San Luis Obispo",
-    format: "Storefront",
-    address: "",
-    phone: "",
-    website: "",
-    description: "A fictional independent bookstore and gift shop."
-  },
-  {
-    name: "Sample Creative Studio",
-    category: "Professional Services",
-    cuisine: "Not applicable",
-    city: "Paso Robles",
-    format: "Online",
-    address: "",
-    phone: "",
-    website: "",
-    description: "A fictional design and creative services business."
+let businesses = [];
+  async function loadBusinesses() {
+  const countElement = document.getElementById("count");
+
+  try {
+    const response = await fetch(
+      "businesses.csv",
+      { cache: "no-cache" }
+    );
+
+    if (!response.ok) {
+      throw new Error("CSV could not be loaded");
+    }
+
+    const csvText = await response.text();
+
+    const parsed = Papa.parse(csvText, {
+      header: true,
+      skipEmptyLines: "greedy",
+      transformHeader: header => header.trim()
+    });
+
+    if (parsed.errors.length > 0) {
+      console.warn("CSV parsing warnings:", parsed.errors);
+    }
+
+    // Converts "Chinese; Thai" into ["Chinese", "Thai"]
+    function splitValues(value) {
+      return (value || "")
+        .split(";")
+        .map(item => item.trim())
+        .filter(Boolean);
+    }
+
+    businesses = parsed.data
+      .filter(row => (row["Business Name"] || "").trim())
+      .map(row => ({
+        name: (row["Business Name"] || "").trim(),
+
+        category: splitValues(row["Business Category"]),
+        cuisine: splitValues(row["Cuisine"]),
+        format: splitValues(row["Business Format"]),
+
+        city: (row["City"] || "").trim(),
+        address: (row["Address"] || "").trim(),
+        phone: (row["Public Phone"] || "").trim(),
+        website: (row["Website"] || "").trim(),
+        description: (row["Description"] || "").trim()
+      }));
+
+    populateAllFilters();
+    render();
+
+  } catch (error) {
+    console.error("Directory loading error:", error);
+
+    countElement.textContent =
+      "Unable to load the business directory.";
   }
-];
+}
 
 const searchInput = document.getElementById("search");
 const categorySelect = document.getElementById("category");
@@ -505,8 +476,15 @@ const clearButton = document.getElementById("clear");
 
 function populateSelect(select, field) {
   const values = [...new Set(
-    businesses.map(b => b[field]).filter(Boolean)
+    businesses.flatMap(b =>
+      Array.isArray(b[field])
+        ? b[field]
+        : [b[field]]
+    ).filter(Boolean)
   )].sort((a, b) => a.localeCompare(b));
+
+  // Keep the first "All" option
+  select.replaceChildren(select.options[0]);
 
   values.forEach(value => {
     const option = document.createElement("option");
@@ -516,11 +494,13 @@ function populateSelect(select, field) {
   });
 }
 
-populateSelect(categorySelect, "category");
-populateSelect(cuisineSelect, "cuisine");
-populateSelect(citySelect, "city");
-populateSelect(formatSelect, "format");
-
+function populateAllFilters() {
+  populateSelect(categorySelect, "category");
+  populateSelect(cuisineSelect, "cuisine");
+  populateSelect(citySelect, "city");
+  populateSelect(formatSelect, "format");
+}
+  
 function makeElement(tag, className, text) {
   const element = document.createElement(tag);
   if (className) element.className = className;
@@ -569,14 +549,21 @@ function createCard(business) {
 
   const tags = makeElement("div", "tags");
 
-  [business.category, business.cuisine, business.format]
-    .filter(value => value && value !== "Not applicable")
-    .forEach((value, index) => {
-      tags.appendChild(
-        makeElement("span",
-          index === 0 ? "tag gold" : "tag", value)
-      );
-    });
+[
+  ...business.category,
+  ...business.cuisine,
+  ...business.format
+]
+  .filter(value => value && value !== "Not applicable")
+  .forEach((value, index) => {
+    tags.appendChild(
+      makeElement(
+        "span",
+        index === 0 ? "tag gold" : "tag",
+        value
+      )
+    );
+  });
 
   top.appendChild(tags);
 
@@ -616,20 +603,25 @@ function getFilteredBusinesses() {
 
   const matches = businesses.filter(b => {
     const searchable = [
-      b.name, b.category, b.cuisine, b.city,
-      b.format, b.address, b.description
+      b.name,
+      ...b.category,
+      ...b.cuisine,
+      b.city,
+      ...b.format,
+      b.address,
+      b.description
     ].join(" ").toLowerCase();
 
     return (
       searchable.includes(term) &&
       (!categorySelect.value ||
-        b.category === categorySelect.value) &&
+        b.category.includes(categorySelect.value)) &&
       (!cuisineSelect.value ||
-        b.cuisine === cuisineSelect.value) &&
+        b.cuisine.includes(cuisineSelect.value)) &&
       (!citySelect.value ||
         b.city === citySelect.value) &&
       (!formatSelect.value ||
-        b.format === formatSelect.value)
+        b.format.includes(formatSelect.value))
     );
   });
 
@@ -639,14 +631,18 @@ function getFilteredBusinesses() {
     if (sort === "name-desc") {
       return b.name.localeCompare(a.name);
     }
+
     if (sort === "city-asc") {
       return a.city.localeCompare(b.city) ||
              a.name.localeCompare(b.name);
     }
+
     if (sort === "category-asc") {
-      return a.category.localeCompare(b.category) ||
-             a.name.localeCompare(b.name);
+      return a.category.join("; ").localeCompare(
+        b.category.join("; ")
+      ) || a.name.localeCompare(b.name);
     }
+
     return a.name.localeCompare(b.name);
   });
 
@@ -706,7 +702,7 @@ clearButton.addEventListener("click", () => {
   searchInput.focus();
 });
 
-render();
+loadBusinesses();
 </script>
 </body>
 </html>
